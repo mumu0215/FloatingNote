@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Environment & secrets
+.env
+*.pem
+*.key
+
+# Runtime / build artifacts
+dist/
+build/
+release/
+*.egg-info/
+*.log
+*.pid
+*.spec
+*.build/
+*.dist/
+*.onefile-build/
+build_log.txt
+FloatingNote.spec
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python caches
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local editor
+.idea/
+.vscode/
+*.swp
