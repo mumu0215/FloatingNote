@@ -52,13 +52,16 @@ build_exe.bat
 
 ```text
 release/FloatingNote/
-  FloatingNote.exe    # 双击运行
-  *.dll / tcl / tk / ...
+  FloatingNote.exe    # 双击运行（必须与 _internal 同目录）
+  _internal/          # 嵌入式 Python / TclTk / 依赖（不可缺）
+  assets/
 ```
 
 将整个 `release/FloatingNote` 文件夹复制到任意位置即可使用，目标机无需安装 Python。
 
-> 说明：当前为 **standalone 文件夹分发**（exe + 运行库），不是单一 exe。整夹拷贝即可。  
+> **重要**：当前为 **onedir 文件夹分发**（exe + `_internal` 运行库），**不是**单一 exe。  
+> 只拷贝 / 只运行 `FloatingNote.exe` 而缺少旁边的 `_internal` 时，会报  
+> `Failed to start embedded Python interpreter`。  
 > 笔记与配置保存在用户目录（见下），**重新执行 `build_exe.bat` 不会清空历史笔记**。
 
 ## 使用说明

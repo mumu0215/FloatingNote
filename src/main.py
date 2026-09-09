@@ -323,8 +323,10 @@ class FloatingNoteApp:
         self._drag_start: tuple[int, int] | None = None
         self._resize_edge: str | None = None
         self._resize_start: tuple[int, int, int, int, int, int] | None = None
-        self._min_w = 240
-        self._min_h = 320
+        # Compact floating window: allow shrinking well below default size.
+        # Chrome (grip + composer + status + resize) is ~140px; list can collapse.
+        self._min_w = 180
+        self._min_h = 150
 
         self.root = tk.Tk()
         self.root.title(APP_TITLE)

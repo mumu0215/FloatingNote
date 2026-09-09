@@ -20,11 +20,14 @@ release/
 *.log
 *.pid
 *.spec
+!FloatingNote.spec
 *.build/
 *.dist/
 *.onefile-build/
 build_log.txt
-FloatingNote.spec
+build_log_full.txt
+nuitka-crash-report.xml
+_t.bat
 
 # OS junk
 .DS_Store
