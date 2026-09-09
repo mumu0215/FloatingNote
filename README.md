@@ -25,7 +25,7 @@ Windows 桌面悬浮笔记工具：置顶显示、块状笔记、一键复制、
 
 - Windows 10 / 11
 - 源码运行：Python 3.10+
-- 打包：需本机已装 Python，以及可用的 C 编译器（Nuitka 使用，如 Visual Studio Build Tools）
+- 打包：需本机已装 Python 3.10+（`build_exe.bat` 会自动装 PyInstaller）
 
 ## 快速开始（源码）
 
@@ -54,12 +54,12 @@ build_exe.bat
 release/FloatingNote/
   FloatingNote.exe    # 双击运行
   *.dll / tcl / tk / ...
-  data/               # 笔记与配置
 ```
 
 将整个 `release/FloatingNote` 文件夹复制到任意位置即可使用，目标机无需安装 Python。
 
-> 说明：当前为 **standalone 文件夹分发**（exe + 运行库），不是单一 exe。整夹拷贝即可。
+> 说明：当前为 **standalone 文件夹分发**（exe + 运行库），不是单一 exe。整夹拷贝即可。  
+> 笔记与配置保存在用户目录（见下），**重新执行 `build_exe.bat` 不会清空历史笔记**。
 
 ## 使用说明
 
@@ -78,22 +78,25 @@ release/FloatingNote/
 
 ## 数据文件
 
-运行时在程序根目录（源码为项目根；便携包为 `FloatingNote.exe` 同级）生成：
+笔记与配置写入**用户持久目录**（与安装/打包目录分离，重装、重新打包后仍保留）：
 
 | 路径 | 说明 |
 |------|------|
-| `data/notes.json` | 笔记内容 |
-| `data/config.json` | 窗口大小、位置、透明度、自启等 |
-| `floating_note.pid` | 当前进程 PID（供 `stop.bat` 使用） |
+| `%LOCALAPPDATA%\FloatingNote\notes.json` | 笔记内容 |
+| `%LOCALAPPDATA%\FloatingNote\config.json` | 窗口大小、位置、透明度、自启等 |
+| `%LOCALAPPDATA%\FloatingNote\floating_note.pid` | 当前进程 PID（供 `stop.bat` 使用） |
 
-仓库内提供空的默认 `data/` 模板；本地使用后的内容不会强制覆盖。
+- 可用环境变量 `FLOATING_NOTE_DATA` 自定义数据目录。
+- 首次启动若持久目录尚无数据，会自动从旧版安装目录旁的 `data/` 迁移。
+- 仓库内 `data/` 仅为开发默认模板，**不是**运行时主存储。
 
 ## 项目结构
 
 ```text
 FloatingNote/
   app_entry.py          # 打包入口
-  build_exe.bat         # Nuitka 便携包构建
+  build_exe.bat         # PyInstaller 便携包构建
+  assets/app.ico        # exe / 托盘图标
   dev.bat / start.bat / stop.bat
   dev.sh / start.sh / stop.sh
   requirements.txt
@@ -101,17 +104,15 @@ FloatingNote/
     main.py             # 主界面、托盘、交互
     storage.py          # JSON 读写
     autostart.py        # Windows 开机自启
-    paths.py            # 源码 / 打包路径解析
-  data/
-    notes.json          # 默认空笔记
-    config.json         # 默认配置
+    paths.py            # 源码 / 打包路径解析；用户数据目录
+  data/                 # 仅开发模板（运行时不写这里）
 ```
 
 ## 开发说明
 
 - UI：`tkinter`（无边框 `overrideredirect`）
 - 托盘：`pystray` + `Pillow`
-- 打包：`Nuitka` standalone（见 `build_exe.bat`）
+- 打包：`PyInstaller` onedir（见 `build_exe.bat`；Nuitka 在本环境 Python 3.13 上易崩溃，已改用 PyInstaller）
 - 自启：`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`，项名 `FloatingNote`
 
 ## License

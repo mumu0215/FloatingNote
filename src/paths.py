@@ -1,10 +1,12 @@
-"""Resolve app root for both source and frozen runs."""
+"""Resolve app root and persistent user data paths."""
 
 from __future__ import annotations
 
 import os
 import sys
 from pathlib import Path
+
+APP_DIR_NAME = "FloatingNote"
 
 
 def is_frozen() -> bool:
@@ -22,7 +24,7 @@ def is_frozen() -> bool:
 
 
 def app_root() -> Path:
-    """Directory that holds `data/` and the pid file."""
+    """Install / source root (exe folder when frozen, repo root in dev)."""
     if is_frozen():
         # Nuitka onefile: original path is usually sys.argv[0]
         for raw in (sys.argv[0] if sys.argv else "", sys.executable):
@@ -39,6 +41,28 @@ def app_root() -> Path:
                 return p.parent
         return Path.cwd()
     return Path(__file__).resolve().parent.parent
+
+
+def user_data_dir() -> Path:
+    """Persistent data dir that survives reinstall / rebuild.
+
+    Override with env ``FLOATING_NOTE_DATA`` if needed.
+    Default: ``%LOCALAPPDATA%\\FloatingNote`` on Windows.
+    """
+    override = (os.environ.get("FLOATING_NOTE_DATA") or "").strip()
+    if override:
+        return Path(override).expanduser()
+
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA")
+        if base:
+            return Path(base) / APP_DIR_NAME
+        return Path.home() / "AppData" / "Local" / APP_DIR_NAME
+
+    xdg = os.environ.get("XDG_DATA_HOME")
+    if xdg:
+        return Path(xdg) / APP_DIR_NAME
+    return Path.home() / ".local" / "share" / APP_DIR_NAME
 
 
 def executable_path() -> Path:

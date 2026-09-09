@@ -4,6 +4,22 @@ cd /d "%~dp0"
 
 set STOPPED=0
 
+set "USER_PID=%LOCALAPPDATA%\FloatingNote\floating_note.pid"
+if exist "%USER_PID%" (
+  set /p PID=<"%USER_PID%"
+  if defined PID (
+    tasklist /FI "PID eq %PID%" 2>nul | find "%PID%" >nul
+    if not errorlevel 1 (
+      taskkill /PID %PID% /F >nul 2>&1
+      if not errorlevel 1 (
+        echo [stop] Stopped process PID=%PID%
+        set STOPPED=1
+      )
+    )
+  )
+  del /f /q "%USER_PID%" >nul 2>&1
+)
+
 if exist "floating_note.pid" (
   set /p PID=<floating_note.pid
   if defined PID (

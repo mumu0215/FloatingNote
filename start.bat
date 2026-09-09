@@ -2,6 +2,17 @@
 setlocal
 cd /d "%~dp0"
 
+set "USER_PID=%LOCALAPPDATA%\FloatingNote\floating_note.pid"
+if exist "%USER_PID%" (
+  set /p OLD_PID=<"%USER_PID%"
+  if defined OLD_PID (
+    tasklist /FI "PID eq %OLD_PID%" 2>nul | find "%OLD_PID%" >nul
+    if not errorlevel 1 (
+      echo [start] Floating Note is already running. PID=%OLD_PID%
+      exit /b 0
+    )
+  )
+)
 if exist "floating_note.pid" (
   set /p OLD_PID=<floating_note.pid
   if defined OLD_PID (

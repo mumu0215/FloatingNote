@@ -28,10 +28,9 @@ if str(_SRC_ROOT) not in sys.path:
 from src import storage  # noqa: E402
 from src.autostart import is_autostart_enabled, set_autostart  # noqa: E402
 from src.paths import app_root  # noqa: E402
+from src.storage import PID_FILE  # noqa: E402
 
 APP_TITLE = "悬浮笔记"
-ROOT = app_root()
-PID_FILE = ROOT / "floating_note.pid"
 RESIZE_BORDER = 6
 
 # Visual tokens
@@ -65,6 +64,7 @@ def _truncate(text: str, max_chars: int) -> str:
 
 def _write_pid() -> None:
     try:
+        storage.ensure_data_dir()
         PID_FILE.write_text(str(os.getpid()), encoding="utf-8")
     except OSError:
         pass
@@ -331,6 +331,7 @@ class FloatingNoteApp:
         self.root.configure(bg=BG)
         # No system title bar / min / max / close chrome
         self.root.overrideredirect(True)
+        self._apply_window_icon()
 
         width = int(self.config.get("width") or 300)
         height = int(self.config.get("height") or 480)
@@ -364,6 +365,40 @@ class FloatingNoteApp:
         _write_pid()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close_window)
         self.root.after(200, self._start_tray)
+
+    def _icon_candidates(self) -> list[Path]:
+        roots = [app_root()]
+        try:
+            roots.append(Path(__file__).resolve().parent.parent)
+        except OSError:
+            pass
+        names = ("app.ico", "app.png")
+        out: list[Path] = []
+        seen: set[str] = set()
+        for root in roots:
+            for name in names:
+                path = root / "assets" / name
+                key = str(path)
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append(path)
+        return out
+
+    def _apply_window_icon(self) -> None:
+        """Set taskbar / Alt-Tab icon when the OS still shows one."""
+        for path in self._icon_candidates():
+            if not path.is_file():
+                continue
+            try:
+                if path.suffix.lower() == ".ico":
+                    self.root.iconbitmap(default=str(path))
+                else:
+                    self._wm_icon_image = tk.PhotoImage(file=str(path))
+                    self.root.iconphoto(True, self._wm_icon_image)
+                return
+            except tk.TclError:
+                continue
 
     # ------------------------------------------------------------------ UI
     def _build_ui(self) -> None:
@@ -464,7 +499,7 @@ class FloatingNoteApp:
 
         self.composer_text = tk.Text(
             input_row,
-            height=3,
+            height=2,
             wrap="word",
             bg=BG_BLOCK,
             fg=FG,
@@ -472,7 +507,7 @@ class FloatingNoteApp:
             relief="flat",
             font=("Microsoft YaHei UI", 9),
             padx=8,
-            pady=6,
+            pady=4,
             highlightthickness=1,
             highlightbackground=BORDER,
             highlightcolor=ACCENT,
@@ -841,6 +876,13 @@ class FloatingNoteApp:
             return
 
         def make_icon() -> Any:
+            # Prefer packaged / repo icon so tray matches exe icon
+            for candidate in self._icon_candidates():
+                if candidate.is_file():
+                    try:
+                        return Image.open(candidate).convert("RGBA")
+                    except OSError:
+                        pass
             size = 64
             img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
             draw = ImageDraw.Draw(img)
