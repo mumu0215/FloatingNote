@@ -163,6 +163,8 @@ class NoteEditDialog(tk.Toplevel):
         self.text = tk.Text(
             frame,
             wrap="word",
+            width=1,
+            height=6,
             bg=BG_BLOCK,
             fg=FG,
             insertbackground=FG,
@@ -499,9 +501,28 @@ class FloatingNoteApp:
         input_row = tk.Frame(composer, bg=BG_PANEL)
         input_row.pack(fill="x", padx=8, pady=(4, 8))
 
+        # Pack the button first. tk.Text defaults to width=80 characters, so
+        # packing it first claims the whole row and leaves the button unmapped.
+        self.save_btn = tk.Button(
+            input_row,
+            text="保存",
+            command=self.save_composer_note,
+            bg=ACCENT,
+            fg="#11111b",
+            activebackground=ACCENT_DIM,
+            activeforeground="#11111b",
+            relief="flat",
+            cursor="hand2",
+            font=("Microsoft YaHei UI", 11, "bold"),
+            padx=14,
+            pady=10,
+        )
+        self.save_btn.pack(side="right", fill="y")
+
         self.composer_text = tk.Text(
             input_row,
             height=2,
+            width=1,
             wrap="word",
             bg=BG_BLOCK,
             fg=FG,
@@ -515,23 +536,6 @@ class FloatingNoteApp:
             highlightcolor=ACCENT,
         )
         self.composer_text.pack(side="left", fill="both", expand=True, padx=(0, 8))
-
-        self.save_btn = tk.Button(
-            input_row,
-            text="保存",
-            command=self.save_composer_note,
-            bg=ACCENT,
-            fg="#11111b",
-            activebackground=ACCENT_DIM,
-            activeforeground="#11111b",
-            relief="flat",
-            width=6,
-            cursor="hand2",
-            font=("Microsoft YaHei UI", 11, "bold"),
-            padx=8,
-            pady=10,
-        )
-        self.save_btn.pack(side="right", fill="y")
 
         # Scrollable note list (fills remaining space)
         body = tk.Frame(self.inner, bg=BG)
